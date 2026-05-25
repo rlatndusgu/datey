@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 코스 상세</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html">캘린더</a>
+        <a href="anniversary.html">기념일</a>
+    </div>
+</nav>
+
+<div class="container" id="detail-wrap">
+    <p style="text-align: center; color: #bbb; padding: 60px 0;">불러오는 중...</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+    var budgetTag = { low: '💵 3만원 이하', mid: '💵 3~7만원', high: '💵 7만원 이상' };
+    var moodTag   = { romantic: '💕 로맨틱', casual: '😊 캐주얼', active: '⚡ 액티브', cultural: '🎨 문화적' };
+    var timeTag   = { morning: '☀️ 오전', afternoon: '🌤 오후', evening: '🌆 저녁', night: '🌙 밤' };
+
+    window.onload = function() {
+        var courseId = parseInt(localStorage.getItem('selectedCourseId'));
+        var selectedDate = localStorage.getItem('selectedDate');
+        var savedCourses = JSON.parse(localStorage.getItem('savedCourses') || '{}');
+
+        // 해당 코스 찾기
+        var course = null;
+        for (var i = 0; i < courses.length; i++) {
+            if (courses[i].id === courseId) {
+                course = courses[i];
+                break;
+            }
+        }
+
+        var wrap = document.getElementById('detail-wrap');
+
+        if (!course) {
+            wrap.innerHTML = '<p style="text-align:center; color:#bbb; padding:60px 0;">코스를 찾을 수 없어요. <a href="result.html" style="color:#e8566e;">← 돌아가기</a></p>';
+            return;
+        }
+
+        // 이미 저장된 코스인지 확인
+        var alreadySaved = (selectedDate && savedCourses[selectedDate] === courseId);
+
+        // 장소 목록 HTML
+        var placesHtml = '';
+        for (var j = 0; j < course.places.length; j++) {
+            var p = course.places[j];
+            placesHtml +=
+                '<div class="place-item">' +
+                '  <div class="place-num">' + (j + 1) + '</div>' +
+                '  <div>' +
+                '    <span class="place-type">' + p.type + '</span>' +
+                '    <div class="place-name">' + p.name + '</div>' +
+                '    <div class="place-desc">' + p.desc + '</div>' +
+                '  </div>' +
+                '</div>';
+        }
+
+        // 저장/취소 버튼 영역
+        var saveHtml = '';
+        if (selectedDate) {
+            if (alreadySaved) {
+                saveHtml =
+                    '<div class="save-area">' +
+                    '  <p class="saved-msg">✅ ' + selectedDate + ' 에 저장된 코스예요!</p>' +
+                    '  <button class="btn btn-outline" onclick="removeCourse()">저장 취소하기</button>' +
+                    '</div>';
+            } else {
+                saveHtml =
+                    '<div class="save-area">' +
+                    '  <p class="save-msg">📅 ' + selectedDate + ' 에 이 코스를 저장할까요?</p>' +
+                    '  <button class="btn" onclick="saveCourse()">💾 캘린더에 저장하기</button>' +
+                    '</div>';
+            }
+        }
+
+        // 전체 HTML 조립
+        wrap.innerHTML =
+            '<button class="back-btn" onclick="history.back()">← 뒤로가기</button>' +
+
+            '<div class="detail-hero">' +
+            '  <div class="detail-img">' + course.emoji + '</div>' +
+            '  <div class="detail-info">' +
+            '    <div class="detail-tags">' +
+            '      <span class="tag">📍 ' + course.region + '</span>' +
+            '      <span class="tag">' + (budgetTag[course.budget] || '') + '</span>' +
+            '      <span class="tag">' + (moodTag[course.mood] || '') + '</span>' +
+            '      <span class="tag">' + (timeTag[course.time] || '') + '</span>' +
+            '    </div>' +
+            '    <h1>' + course.title + '</h1>' +
+            '    <p class="detail-desc">' + course.description + '</p>' +
+            '  </div>' +
+            '</div>' +
+
+            '<div class="places-section">' +
+            '  <h2>📍 코스 순서</h2>' +
+            placesHtml +
+            '</div>' +
+
+            '<div class="tip-box">' +
+            '  <h3>💡 알아두세요!</h3>' +
+            '  <p>' + course.tip + '</p>' +
+            '</div>' +
+
+            '<div class="budget-box">' +
+            '  <h3>💰 예상 비용</h3>' +
+            '  <p>' + course.budget_detail + '</p>' +
+            '</div>' +
+
+            saveHtml;
+    };
+
+    function saveCourse() {
+        var courseId = parseInt(localStorage.getItem('selectedCourseId'));
+        var selectedDate = localStorage.getItem('selectedDate');
+
+        if (!selectedDate || isNaN(courseId)) {
+            alert('날짜를 먼저 선택해주세요!');
+            return;
+        }
+
+        var savedCourses = JSON.parse(localStorage.getItem('savedCourses') || '{}');
+        savedCourses[selectedDate] = courseId;
+        localStorage.setItem('savedCourses', JSON.stringify(savedCourses));
+
+        alert(selectedDate + ' 에 코스를 저장했어요! 💕');
+        window.location.href = 'calendar.html';
+    }
+
+    function removeCourse() {
+        var selectedDate = localStorage.getItem('selectedDate');
+        var savedCourses = JSON.parse(localStorage.getItem('savedCourses') || '{}');
+
+        if (confirm('저장을 취소할까요?')) {
+            delete savedCourses[selectedDate];
+            localStorage.setItem('savedCourses', JSON.stringify(savedCourses));
+            alert('저장이 취소되었어요.');
+            window.location.href = 'calendar.html';
+        }
+    }
+</script>
+
+</body>
+</html>

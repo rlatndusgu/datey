@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 우리만의 달력</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html">캘린더</a>
+        <a href="anniversary.html">기념일</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="home-hero">
+        <h1>💕 Datey</h1>
+        <p class="subtitle">우리만의 특별한 날들을 기록해요</p>
+    </div>
+
+    <!-- 날짜가 저장되어 있으면 카운터 표시 -->
+    <div id="counter-box" class="home-counter" style="display: none;">
+        <div id="days-num" class="days-num">0</div>
+        <div class="days-label">일째 함께하는 중 ❤️</div>
+        <div id="since-date" class="since-date"></div>
+    </div>
+
+    <!-- 처음 만난 날 입력 폼 -->
+    <div class="date-input-box">
+        <h2 id="input-title">처음 만난 날을 알려주세요 📅</h2>
+        <input type="date" id="start-date-input">
+        <button class="btn" onclick="saveDate()" style="width: 100%;">저장하기</button>
+    </div>
+
+    <!-- 하단 메뉴 카드 -->
+    <div class="home-nav-cards">
+        <a href="calendar.html" class="home-card">
+            <span class="card-icon">📅</span>
+            <strong>캘린더</strong>
+            <p>기념일 달력 보기</p>
+        </a>
+        <a href="anniversary.html" class="home-card">
+            <span class="card-icon">💝</span>
+            <strong>기념일</strong>
+            <p>다가오는 기념일</p>
+        </a>
+        <a href="filter.html" class="home-card">
+            <span class="card-icon">🗺️</span>
+            <strong>데이트 계획</strong>
+            <p>코스 추천받기</p>
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // 페이지 로드할 때 실행
+    window.onload = function() {
+        var saved = localStorage.getItem('startDate');
+        if (saved) {
+            showCounter(saved);
+            document.getElementById('input-title').textContent = '처음 만난 날 변경하기 ✏️';
+            document.getElementById('start-date-input').value = saved;
+        }
+    };
+
+    function saveDate() {
+        var val = document.getElementById('start-date-input').value;
+        if (!val) {
+            alert('날짜를 선택해주세요!');
+            return;
+        }
+
+        // 미래 날짜는 입력 불가
+        var today = new Date();
+        var input = new Date(val);
+        if (input > today) {
+            alert('미래 날짜는 입력할 수 없어요!');
+            return;
+        }
+
+        localStorage.setItem('startDate', val);
+        showCounter(val);
+        document.getElementById('input-title').textContent = '처음 만난 날 변경하기 ✏️';
+        alert('저장되었어요! 💕');
+    }
+
+    function showCounter(startDate) {
+        var start = new Date(startDate);
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1일째부터 시작하니까 +1 해줌
+        var diff = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
+
+        document.getElementById('days-num').textContent = diff;
+        document.getElementById('since-date').textContent = startDate + ' 부터';
+        document.getElementById('counter-box').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

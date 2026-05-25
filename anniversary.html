@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 기념일</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html">캘린더</a>
+        <a href="anniversary.html" class="active">기념일</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <h1 class="page-title">💝 기념일 목록</h1>
+
+    <!-- 날짜 미입력 시 안내 -->
+    <div id="no-date-msg" class="no-date-msg" style="display: none;">
+        <span class="icon">📅</span>
+        <p>홈에서 처음 만난 날을 먼저 입력해주세요!</p>
+        <a href="index.html" class="btn">홈으로 가기</a>
+    </div>
+
+    <!-- 날짜 입력된 경우 -->
+    <div id="main-content" style="display: none;">
+
+        <div class="start-info-box">
+            <div class="start-label" id="start-label"></div>
+            <div class="total-days" id="total-days"></div>
+        </div>
+
+        <div class="anniversary-list" id="anniversary-list">
+            <!-- 자바스크립트로 추가 -->
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function toDateStr(d) {
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+    }
+
+    function toKey(d) {
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+
+    window.onload = function() {
+        var startDate = localStorage.getItem('startDate');
+
+        if (!startDate) {
+            document.getElementById('no-date-msg').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('main-content').style.display = 'block';
+
+        var start = new Date(startDate);
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        var totalDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
+
+        document.getElementById('start-label').textContent = '💑 처음 만난 날: ' + startDate;
+        document.getElementById('total-days').textContent = '오늘은 ' + totalDays + '일째!';
+
+        // 기념일 목록 만들기
+        var list = [];
+
+        // 100일 단위 기념일
+        for (var i = 100; i <= 3650; i += 100) {
+            var d = new Date(start);
+            d.setDate(d.getDate() + i - 1);
+            list.push({ label: i + '일', date: new Date(d) });
+        }
+
+        // 1주년 ~ 10주년
+        for (var y = 1; y <= 10; y++) {
+            var annDate = new Date(start);
+            annDate.setFullYear(annDate.getFullYear() + y);
+            list.push({ label: y + '주년 기념일', date: new Date(annDate) });
+        }
+
+        // 날짜 순서대로 정렬
+        list.sort(function(a, b) {
+            return a.date - b.date;
+        });
+
+        var listEl = document.getElementById('anniversary-list');
+
+        for (var k = 0; k < list.length; k++) {
+            var item = list[k];
+            var diffMs = item.date - today;
+            var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+            var el = document.createElement('div');
+            el.className = 'anniversary-item';
+
+            // 지난 기념일
+            if (diffDays < 0) {
+                el.classList.add('past');
+            }
+            // 오늘 기념일
+            if (diffDays === 0) {
+                el.classList.add('today-anni');
+            }
+
+            // D-day 텍스트
+            var dDayText = '';
+            var dDayClass = 'd-day';
+            if (diffDays < 0) {
+                dDayText = Math.abs(diffDays) + '일 지남';
+                dDayClass = 'd-day past-d';
+            } else if (diffDays === 0) {
+                dDayText = '🎉 오늘!';
+            } else {
+                dDayText = 'D-' + diffDays;
+            }
+
+            el.innerHTML =
+                '<div class="anni-left">' +
+                '  <h3>' + item.label + '</h3>' +
+                '  <div class="anni-date">' + toDateStr(item.date) + '</div>' +
+                '</div>' +
+                '<div class="anni-right">' +
+                '  <div class="' + dDayClass + '">' + dDayText + '</div>' +
+                '</div>';
+
+            listEl.appendChild(el);
+        }
+    };
+</script>
+
+</body>
+</html>

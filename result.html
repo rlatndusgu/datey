@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 추천 코스</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html">캘린더</a>
+        <a href="anniversary.html">기념일</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <h1 class="page-title">🌟 추천 데이트 코스</h1>
+
+    <div class="filter-summary" id="filter-summary"></div>
+    <p class="result-count" id="result-count"></p>
+
+    <div class="course-cards" id="course-cards">
+        <!-- 자바스크립트로 카드 추가 -->
+    </div>
+
+</div>
+
+<script src="data.js"></script>
+<script>
+    // 필터 값 한글 이름으로 변환
+    var regionLabel = { all: '전체 지역', '홍대': '홍대', '강남': '강남', '인사동': '인사동', '이태원': '이태원', '신촌': '신촌' };
+    var budgetLabel = { all: '전체 예산', low: '3만원 이하', mid: '3~7만원', high: '7만원 이상' };
+    var moodLabel   = { all: '전체 분위기', romantic: '로맨틱', casual: '캐주얼', active: '액티브', cultural: '문화적' };
+    var timeLabel   = { all: '전체 시간', morning: '오전', afternoon: '오후', evening: '저녁', night: '밤' };
+
+    // 코스 카드에 표시할 태그 텍스트
+    var budgetTag = { low: '💵 3만원 이하', mid: '💵 3~7만원', high: '💵 7만원 이상' };
+    var moodTag   = { romantic: '💕 로맨틱', casual: '😊 캐주얼', active: '⚡ 액티브', cultural: '🎨 문화적' };
+    var timeTag   = { morning: '☀️ 오전', afternoon: '🌤 오후', evening: '🌆 저녁', night: '🌙 밤' };
+
+    window.onload = function() {
+        var filters = JSON.parse(localStorage.getItem('selectedFilters') || '{}');
+
+        // 필터 요약 텍스트 표시
+        var summary = (regionLabel[filters.region] || '전체 지역') + ' · ' +
+                      (budgetLabel[filters.budget] || '전체 예산') + ' · ' +
+                      (moodLabel[filters.mood] || '전체 분위기') + ' · ' +
+                      (timeLabel[filters.time] || '전체 시간');
+        document.getElementById('filter-summary').textContent = '검색 조건: ' + summary;
+
+        // 필터 적용
+        var filtered = [];
+        for (var i = 0; i < courses.length; i++) {
+            var c = courses[i];
+            if (filters.region !== 'all' && c.region !== filters.region) continue;
+            if (filters.budget !== 'all' && c.budget !== filters.budget) continue;
+            if (filters.mood !== 'all' && c.mood !== filters.mood) continue;
+            if (filters.time !== 'all' && c.time !== filters.time) continue;
+            filtered.push(c);
+        }
+
+        var cardsEl = document.getElementById('course-cards');
+        document.getElementById('result-count').textContent = filtered.length + '개의 코스를 찾았어요!';
+
+        // 결과 없을 때
+        if (filtered.length === 0) {
+            cardsEl.innerHTML =
+                '<div class="no-result">' +
+                '  <span class="no-icon">😢</span>' +
+                '  <p>조건에 맞는 코스가 없어요.</p>' +
+                '  <p style="margin-top: 12px;"><a href="filter.html">← 필터 다시 설정하기</a></p>' +
+                '</div>';
+            return;
+        }
+
+        // 카드 생성
+        for (var j = 0; j < filtered.length; j++) {
+            var course = filtered[j];
+            var card = document.createElement('div');
+            card.className = 'course-card';
+
+            card.innerHTML =
+                '<div class="course-card-img">' + course.emoji + '</div>' +
+                '<div class="course-card-body">' +
+                '  <h3>' + course.title + '</h3>' +
+                '  <p>' + course.summary + '</p>' +
+                '  <div class="course-tags">' +
+                '    <span class="tag">📍 ' + course.region + '</span>' +
+                '    <span class="tag">' + (budgetTag[course.budget] || '') + '</span>' +
+                '    <span class="tag">' + (moodTag[course.mood] || '') + '</span>' +
+                '    <span class="tag">' + (timeTag[course.time] || '') + '</span>' +
+                '  </div>' +
+                '</div>';
+
+            // 카드 클릭하면 상세 페이지로
+            (function(id) {
+                card.addEventListener('click', function() {
+                    localStorage.setItem('selectedCourseId', id);
+                    window.location.href = 'detail.html';
+                });
+            })(course.id);
+
+            cardsEl.appendChild(card);
+        }
+    };
+</script>
+
+</body>
+</html>

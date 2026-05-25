@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 데이트 코스 찾기</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html">캘린더</a>
+        <a href="anniversary.html">기념일</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <h1 class="page-title">🗺️ 어떤 데이트 할까요?</h1>
+
+    <!-- 선택된 날짜 표시 -->
+    <div class="selected-date-info">
+        📅 선택한 날짜: <strong id="selected-date-text">날짜 없음</strong>
+    </div>
+
+    <!-- 지역 선택 -->
+    <div class="filter-section">
+        <h3>📍 어느 지역으로 갈까요?</h3>
+        <div class="filter-btns" id="region-group">
+            <button class="filter-btn active" data-val="all">전체</button>
+            <button class="filter-btn" data-val="홍대">홍대</button>
+            <button class="filter-btn" data-val="강남">강남</button>
+            <button class="filter-btn" data-val="인사동">인사동</button>
+            <button class="filter-btn" data-val="이태원">이태원</button>
+            <button class="filter-btn" data-val="신촌">신촌</button>
+        </div>
+    </div>
+
+    <!-- 예산 선택 -->
+    <div class="filter-section">
+        <h3>💰 예산은 어느 정도예요?</h3>
+        <div class="filter-btns" id="budget-group">
+            <button class="filter-btn active" data-val="all">전체</button>
+            <button class="filter-btn" data-val="low">3만원 이하</button>
+            <button class="filter-btn" data-val="mid">3~7만원</button>
+            <button class="filter-btn" data-val="high">7만원 이상</button>
+        </div>
+    </div>
+
+    <!-- 분위기 선택 -->
+    <div class="filter-section">
+        <h3>💫 어떤 분위기로 갈까요?</h3>
+        <div class="filter-btns" id="mood-group">
+            <button class="filter-btn active" data-val="all">전체</button>
+            <button class="filter-btn" data-val="romantic">로맨틱</button>
+            <button class="filter-btn" data-val="casual">캐주얼</button>
+            <button class="filter-btn" data-val="active">액티브</button>
+            <button class="filter-btn" data-val="cultural">문화적</button>
+        </div>
+    </div>
+
+    <!-- 시간대 선택 -->
+    <div class="filter-section">
+        <h3>⏰ 언제 만날 거예요?</h3>
+        <div class="filter-btns" id="time-group">
+            <button class="filter-btn active" data-val="all">전체</button>
+            <button class="filter-btn" data-val="morning">오전 (10시~)</button>
+            <button class="filter-btn" data-val="afternoon">오후 (12시~)</button>
+            <button class="filter-btn" data-val="evening">저녁 (18시~)</button>
+            <button class="filter-btn" data-val="night">밤 (21시~)</button>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <button class="btn" onclick="goResult()" style="font-size: 16px; padding: 14px 44px;">
+            코스 추천받기 💕
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // 현재 선택된 필터 값
+    var selRegion = 'all';
+    var selBudget = 'all';
+    var selMood = 'all';
+    var selTime = 'all';
+
+    window.onload = function() {
+        // 캘린더에서 선택한 날짜 표시
+        var date = localStorage.getItem('selectedDate');
+        if (date) {
+            document.getElementById('selected-date-text').textContent = date;
+        }
+
+        // 각 그룹에 클릭 이벤트 등록
+        setupGroup('region-group', function(v) { selRegion = v; });
+        setupGroup('budget-group', function(v) { selBudget = v; });
+        setupGroup('mood-group', function(v) { selMood = v; });
+        setupGroup('time-group', function(v) { selTime = v; });
+    };
+
+    // 버튼 그룹 클릭 처리 함수
+    function setupGroup(groupId, onSelect) {
+        var group = document.getElementById(groupId);
+        var btns = group.querySelectorAll('.filter-btn');
+
+        for (var i = 0; i < btns.length; i++) {
+            // 반복문 안에서 이벤트 등록할 때 클로저 주의
+            (function(btn) {
+                btn.addEventListener('click', function() {
+                    // 같은 그룹 안 버튼들 active 제거
+                    for (var j = 0; j < btns.length; j++) {
+                        btns[j].classList.remove('active');
+                    }
+                    btn.classList.add('active');
+                    onSelect(btn.getAttribute('data-val'));
+                });
+            })(btns[i]);
+        }
+    }
+
+    function goResult() {
+        var filters = {
+            region: selRegion,
+            budget: selBudget,
+            mood: selMood,
+            time: selTime
+        };
+        localStorage.setItem('selectedFilters', JSON.stringify(filters));
+        window.location.href = 'result.html';
+    }
+</script>
+
+</body>
+</html>

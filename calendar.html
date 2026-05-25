@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datey - 캘린더</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="nav-logo">💕 Datey</a>
+    <div class="nav-links">
+        <a href="calendar.html" class="active">캘린더</a>
+        <a href="anniversary.html">기념일</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="calendar-header">
+        <button onclick="prevMonth()">&#9664;</button>
+        <h2 id="month-title"></h2>
+        <button onclick="nextMonth()">&#9654;</button>
+    </div>
+
+    <div class="calendar-grid" id="calendar-grid">
+        <!-- 자바스크립트로 생성 -->
+    </div>
+
+    <div class="calendar-legend">
+        <div class="legend-item">
+            <div class="legend-dot l-today"></div>
+            <span>오늘</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot l-anniversary"></div>
+            <span>기념일</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot l-course"></div>
+            <span>저장된 데이트</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var today = new Date();
+    var curYear = today.getFullYear();
+    var curMonth = today.getMonth(); // 0~11
+
+    // 날짜를 "YYYY-MM-DD" 형식으로 변환
+    function toDateStr(d) {
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+
+    // 기념일 계산 (startDate를 기준으로)
+    function calcAnniversaries(startDate) {
+        var start = new Date(startDate);
+        var result = {};
+
+        // 100일 단위로 기념일 추가
+        for (var i = 100; i <= 3650; i += 100) {
+            var d = new Date(start);
+            d.setDate(d.getDate() + i - 1);
+            var key = toDateStr(d);
+            result[key] = i + '일';
+        }
+
+        // 1주년 ~ 10주년 추가
+        for (var y = 1; y <= 10; y++) {
+            var annDate = new Date(start);
+            annDate.setFullYear(annDate.getFullYear() + y);
+            var k = toDateStr(annDate);
+            // 이미 100일 기념일과 겹치면 같이 표시
+            if (result[k]) {
+                result[k] = result[k] + ' · ' + y + '주년';
+            } else {
+                result[k] = y + '주년';
+            }
+        }
+
+        return result;
+    }
+
+    function renderCalendar(year, month) {
+        var startDate = localStorage.getItem('startDate');
+        var savedCourses = JSON.parse(localStorage.getItem('savedCourses') || '{}');
+        var anniversaries = {};
+        if (startDate) {
+            anniversaries = calcAnniversaries(startDate);
+        }
+
+        // 달 제목 표시
+        var monthNames = ['1월', '2월', '3월', '4월', '5월', '6월',
+                          '7월', '8월', '9월', '10월', '11월', '12월'];
+        document.getElementById('month-title').textContent = year + '년 ' + monthNames[month];
+
+        var grid = document.getElementById('calendar-grid');
+        grid.innerHTML = '';
+
+        // 요일 헤더 (일~토)
+        var dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        for (var i = 0; i < 7; i++) {
+            var nameEl = document.createElement('div');
+            nameEl.className = 'calendar-day-name';
+            nameEl.textContent = dayNames[i];
+            grid.appendChild(nameEl);
+        }
+
+        // 이번 달 1일이 무슨 요일인지
+        var firstDayOfWeek = new Date(year, month, 1).getDay();
+        // 이번 달 마지막 날
+        var lastDate = new Date(year, month + 1, 0).getDate();
+
+        // 첫 주 빈 칸 채우기
+        for (var j = 0; j < firstDayOfWeek; j++) {
+            var emptyEl = document.createElement('div');
+            emptyEl.className = 'calendar-day empty';
+            grid.appendChild(emptyEl);
+        }
+
+        // 날짜 칸 만들기
+        for (var d = 1; d <= lastDate; d++) {
+            var dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            var dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+
+            var thisDate = new Date(year, month, d);
+            var todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            // 오늘인지 체크
+            if (thisDate.getTime() === todayDate.getTime()) {
+                dayEl.classList.add('today');
+            }
+
+            // 일요일 / 토요일 색상
+            var dow = thisDate.getDay();
+            if (dow === 0) dayEl.classList.add('sunday');
+            if (dow === 6) dayEl.classList.add('saturday');
+
+            // 기념일 체크
+            if (anniversaries[dateStr]) {
+                dayEl.classList.add('anniversary');
+            }
+
+            // 저장된 데이트 코스 체크
+            if (savedCourses[dateStr]) {
+                dayEl.classList.add('has-course');
+            }
+
+            // 날짜 숫자
+            var numEl = document.createElement('div');
+            numEl.className = 'day-number';
+            numEl.textContent = d;
+            dayEl.appendChild(numEl);
+
+            // 기념일 배지
+            if (anniversaries[dateStr]) {
+                var badge = document.createElement('div');
+                badge.className = 'day-badge';
+                badge.textContent = anniversaries[dateStr];
+                badge.title = anniversaries[dateStr];
+                dayEl.appendChild(badge);
+            }
+
+            // 저장된 데이트 배지
+            if (savedCourses[dateStr]) {
+                var cBadge = document.createElement('div');
+                cBadge.className = 'day-badge course-badge';
+                cBadge.textContent = '📍 데이트';
+                dayEl.appendChild(cBadge);
+            }
+
+            // 클릭 이벤트 - 클로저로 dateStr 고정
+            (function(ds, courseId) {
+                dayEl.addEventListener('click', function() {
+                    localStorage.setItem('selectedDate', ds);
+                    if (courseId) {
+                        // 이미 저장된 코스 있으면 상세 페이지로
+                        localStorage.setItem('selectedCourseId', courseId);
+                        window.location.href = 'detail.html';
+                    } else {
+                        // 코스 없으면 필터 페이지로
+                        window.location.href = 'filter.html';
+                    }
+                });
+            })(dateStr, savedCourses[dateStr]);
+
+            grid.appendChild(dayEl);
+        }
+    }
+
+    function prevMonth() {
+        curMonth--;
+        if (curMonth < 0) {
+            curMonth = 11;
+            curYear--;
+        }
+        renderCalendar(curYear, curMonth);
+    }
+
+    function nextMonth() {
+        curMonth++;
+        if (curMonth > 11) {
+            curMonth = 0;
+            curYear++;
+        }
+        renderCalendar(curYear, curMonth);
+    }
+
+    // 처음 실행
+    renderCalendar(curYear, curMonth);
+</script>
+
+</body>
+</html>
